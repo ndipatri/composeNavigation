@@ -19,14 +19,17 @@ class MainActivity : ComponentActivity() {
 
             ComposeNavigationTheme {
                 // A surface container using the 'background' color from the theme
-                Scaffold(
-                    topBar = {
-                        Button(onClick = { screenToShow = { ShowSiren("123") } }) {
-                            Text("Show Siren!")
-                        }
-                    }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colors.background
                 ) {
-                    screenToShow()
+                    Column {
+                        Button(onClick = { screenToShow = { StartSiren("") } }) {
+                            Text("Start Siren!")
+                        }
+
+                        screenToShow()
+                    }
                 }
             }
         }
@@ -39,8 +42,8 @@ fun Greeting(name: String) {
 }
 
 @Composable
-fun ShowSiren(name: String) {
-    Text(text = "Here's the Siren!")
+fun StartSiren(name: String) {
+    Text(text = "Starting the Siren...")
 }
 
 @Preview(showBackground = true)
