@@ -1,6 +1,10 @@
 package com.droidcon.composenavigation
 
+import android.app.Activity
+import android.content.Context
 import android.os.Bundle
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -8,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.viewinterop.AndroidView
 import com.droidcon.composenavigation.ui.theme.ComposeNavigationTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,6 +33,9 @@ class MainActivity : ComponentActivity() {
                         Button(onClick = { screenToShow = { StartSiren("") } }) {
                             Text("Start Siren!")
                         }
+                        Button(onClick = { screenToShow = { SeeSiren(context = LocalContext.current.applicationContext) } }) {
+                            Text("See the Siren!")
+                        }
 
                         screenToShow()
                     }
@@ -44,6 +53,17 @@ fun Greeting(name: String) {
 @Composable
 fun StartSiren(name: String) {
     Text(text = "Starting the Siren...")
+}
+
+@Composable
+fun SeeSiren(url: String = "https://cnn.com", context: Context) {
+    AndroidView(factory = {
+        WebView(context).apply {
+            webViewClient = WebViewClient()
+
+            loadUrl(url)
+        }
+    })
 }
 
 @Preview(showBackground = true)
