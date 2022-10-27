@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
                         Button(onClick = { screenToShow = { StartSiren("") } }) {
                             Text("Start Siren!")
                         }
-                        Button(onClick = { screenToShow = { SeeSiren(context = LocalContext.current.applicationContext) } }) {
+                        Button(onClick = { screenToShow = { SeeSiren(LocalContext.current.applicationContext) } }) {
                             Text("See the Siren!")
                         }
 
@@ -56,12 +56,12 @@ fun StartSiren(name: String) {
 }
 
 @Composable
-fun SeeSiren(url: String = "https://cnn.com", context: Context) {
+fun SeeSiren(context: Context) {
     AndroidView(factory = {
         WebView(context).apply {
             webViewClient = WebViewClient()
 
-            loadUrl(url)
+            loadUrl("https://cnn.com")
         }
     })
 }
