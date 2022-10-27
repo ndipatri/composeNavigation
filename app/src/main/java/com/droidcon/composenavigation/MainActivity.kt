@@ -3,6 +3,7 @@ package com.droidcon.composenavigation
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -33,9 +34,6 @@ class MainActivity : ComponentActivity() {
                         Button(onClick = { screenToShow = { StartSiren("") } }) {
                             Text("Start Siren!")
                         }
-                        Button(onClick = { screenToShow = { SeeSiren(LocalContext.current.applicationContext) } }) {
-                            Text("See the Siren!")
-                        }
 
                         screenToShow()
                     }
@@ -53,17 +51,6 @@ fun Greeting(name: String) {
 @Composable
 fun StartSiren(name: String) {
     Text(text = "Starting the Siren...")
-}
-
-@Composable
-fun SeeSiren(context: Context) {
-    AndroidView(factory = {
-        WebView(context).apply {
-            webViewClient = WebViewClient()
-
-            loadUrl("https://cnn.com")
-        }
-    })
 }
 
 @Preview(showBackground = true)
