@@ -49,14 +49,11 @@ fun Greeting(name: String) {
 }
 
 @Composable
-fun StartSiren(name: String) {
-    Text(text = "Starting the Siren...")
+fun ShowSiren() {
+    Text(text = "Here is our siren!")
 }
 
-@Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    ComposeNavigationTheme {
-        Greeting("Android")
-    }
+fun StartSiren() {
+    Text(text = "Starting the Siren...")
 }
