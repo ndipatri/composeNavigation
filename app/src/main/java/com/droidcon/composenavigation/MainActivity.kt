@@ -5,8 +5,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -14,6 +13,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -40,22 +40,25 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var screenToShow: @Composable () -> Unit by remember { mutableStateOf({ Greeting("Nick!") }) }
+            var screenToShow: @Composable () -> Unit by remember { mutableStateOf({ Greeting() }) }
 
             ComposeNavigationTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
                     Column {
-                        Button(onClick = { screenToShow = { ShowSiren() } }) {
-                            Text("Show Siren")
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Button(onClick = { screenToShow = { Greeting() } }) {
+                                Text("Greeting")
+                            }
+                            Button(onClick = { screenToShow = { ShowSiren() } }) {
+                                Text("Show Siren")
+                            }
+                            Button(onClick = { screenToShow = { StartSiren() } }) {
+                                Text("Start Siren")
+                            }
                         }
-                        Button(onClick = { screenToShow = { StartSiren() } }) {
-                            Text("Start Siren")
-                        }
-
                         screenToShow()
                     }
                 }
@@ -65,8 +68,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
+fun Greeting() {
+    Text(text = "Greetings! Check out my cool siren!")
 }
 
 @Composable
@@ -82,23 +85,14 @@ fun StartSiren() {
 
     LiveRedSirenVideoPlayer()
 
-    LaunchedEffect(Unit ) {
+    LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             particleInterface.turnOnRedSiren().execute()
-            delay(3000)
+            delay(5000)
             particleInterface.turnOffRedSiren().execute()
         }
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 val particleInterface: ParticleRESTInterface by lazy {
@@ -142,39 +136,47 @@ const val particleToken = "78116e05f59f44d8142c22a86216d8103aa7bdec"
 
 @Composable
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-fun LiveRedSirenVideoPlayer() {
-    val context = LocalContext.current
-
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context)
-            .build()
-            .apply {
-
-                val rtspMediaSource: MediaSource = RtspMediaSource.Factory()
-                    .createMediaSource(MediaItem.fromUri("rtsp://ndipatri:ndipatri@10.0.0.21:554/stream1"))
-
-                setMediaSource(rtspMediaSource)
-                addAnalyticsListener(EventLogger(null, "exo"))
-                prepare()
-            }
-    }
-
-    exoPlayer.playWhenReady = true
-    exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
-    exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-
-    DisposableEffect(
-        AndroidView(factory = {
-            PlayerView(context).apply {
-                hideController()
-                useController = false
-                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-
-                player = exoPlayer
-                layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-            }
-        })
+fun LiveRedSirenVideoPlayer(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .height(175.dp)
+            .width(300.dp),
     ) {
-        onDispose { exoPlayer.release() }
+
+        val context = LocalContext.current
+
+        val exoPlayer = remember {
+            ExoPlayer.Builder(context)
+                .build()
+                .apply {
+
+                    val rtspMediaSource: MediaSource = RtspMediaSource.Factory()
+                        .createMediaSource(MediaItem.fromUri("rtsp://ndipatri:ndipatri@10.0.0.21:554/stream1"))
+
+                    setMediaSource(rtspMediaSource)
+                    addAnalyticsListener(EventLogger(null, "exo"))
+                    prepare()
+                }
+        }
+
+        exoPlayer.playWhenReady = true
+        //exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
+        exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
+        exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+
+        DisposableEffect(
+            AndroidView(factory = {
+                PlayerView(context).apply {
+                    hideController()
+                    useController = false
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+
+                    player = exoPlayer
+                    layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                }
+            })
+        ) {
+            onDispose { exoPlayer.release() }
+        }
     }
 }
