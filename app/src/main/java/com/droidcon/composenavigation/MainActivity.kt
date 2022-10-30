@@ -10,7 +10,10 @@ import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -24,6 +27,9 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.droidcon.composenavigation.ui.theme.ComposeNavigationTheme
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +46,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var screenToShow: @Composable () -> Unit by remember { mutableStateOf({ Greeting() }) }
+            val navController = rememberNavController()
 
             ComposeNavigationTheme {
                 // A surface container using the 'background' color from the theme
@@ -49,17 +55,30 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Column {
                         Row(modifier = Modifier.fillMaxWidth()) {
-                            Button(onClick = { screenToShow = { Greeting() } }) {
+                            Button(onClick = { navController.navigate("greeting") }) {
                                 Text("Greeting")
                             }
-                            Button(onClick = { screenToShow = { ShowSiren() } }) {
+                            Button(onClick = { navController.navigate("show_siren") }) {
                                 Text("Show Siren")
                             }
-                            Button(onClick = { screenToShow = { StartSiren() } }) {
+                            Button(onClick = { navController.navigate("start_siren") }) {
                                 Text("Start Siren")
                             }
                         }
-                        screenToShow()
+                        NavHost(
+                            navController = navController,
+                            startDestination = "greeting"
+                        ) {
+                            composable(route = "greeting") {
+                                Greeting()
+                            }
+                            composable(route = "show_siren") {
+                                ShowSiren()
+                            }
+                            composable(route = "start_siren") {
+                                StartSiren()
+                            }
+                        }
                     }
                 }
             }
@@ -69,27 +88,33 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting() {
-    Text(text = "Greetings! Check out my cool siren!")
+    Column {
+        Text(text = "Greetings! Check out my cool siren!")
+    }
 }
 
 @Composable
 fun ShowSiren() {
-    Text(text = "This is the 'Show Siren' Screen")
+    Column {
+        Text(text = "This is the 'Show Siren' Screen")
 
-    LiveRedSirenVideoPlayer()
+        LiveRedSirenVideoPlayer()
+    }
 }
 
 @Composable
 fun StartSiren() {
-    Text(text = "This is the 'Start Siren' Screen")
+    Column {
+        Text(text = "This is the 'Start Siren' Screen")
 
-    LiveRedSirenVideoPlayer()
+        LiveRedSirenVideoPlayer()
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            particleInterface.turnOnRedSiren().execute()
-            delay(5000)
-            particleInterface.turnOffRedSiren().execute()
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                particleInterface.turnOnRedSiren().execute()
+                delay(5000)
+                particleInterface.turnOffRedSiren().execute()
+            }
         }
     }
 }
