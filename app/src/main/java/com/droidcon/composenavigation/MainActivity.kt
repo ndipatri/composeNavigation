@@ -10,7 +10,10 @@ import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -69,10 +72,10 @@ class MainActivity : ComponentActivity() {
                                 Greeting()
                             }
                             composable(route = "show_siren") {
-                                ShowSiren()
+                                Configure()
                             }
                             composable(route = "start_siren") {
-                                StartSiren()
+                                ShowSiren()
                             }
                         }
                     }
@@ -82,7 +85,36 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun Greeting() {
+    Column {
+        Text(text = "Greetings! Check out my cool siren!")
+    }
+}
 
+@Composable
+fun Configure() {
+    Column {
+        Text(text = "This is the 'Configure' Screen")
+    }
+}
+
+@Composable
+fun ShowSiren() {
+    Column {
+        Text(text = "This is the 'Show Siren' Screen")
+
+        LiveRedSirenVideoPlayer()
+
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                particleInterface.turnOnRedSiren().execute()
+                delay(5000)
+                particleInterface.turnOffRedSiren().execute()
+            }
+        }
+    }
+}
 
 val particleInterface: ParticleRESTInterface by lazy {
 
