@@ -6,14 +6,8 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -96,8 +90,17 @@ fun Greeting() {
 fun Configure() {
     Column {
         Text(text = "This is the 'Configure' Screen")
+
+        Row {
+            Text(text = "Siren should be on!")
+            var sirenShouldBeOn by rememberSaveable { mutableStateOf(false) }
+            Checkbox(
+                checked = sirenShouldBeOn,
+                onCheckedChange = { checked -> sirenShouldBeOn = checked })
+        }
     }
 }
+
 
 @Composable
 fun ShowSiren() {
