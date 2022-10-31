@@ -10,10 +10,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -41,7 +38,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,10 +55,10 @@ class MainActivity : ComponentActivity() {
                                 Text("Greeting")
                             }
                             Button(onClick = { navController.navigate("show_siren") }) {
-                                Text("Show Siren")
+                                Text("Configure")
                             }
                             Button(onClick = { navController.navigate("start_siren") }) {
-                                Text("Start Siren")
+                                Text("Show Siren")
                             }
                         }
                         NavHost(
@@ -86,38 +82,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting() {
-    Column {
-        Text(text = "Greetings! Check out my cool siren!")
-    }
-}
-
-@Composable
-fun ShowSiren() {
-    Column {
-        Text(text = "This is the 'Show Siren' Screen")
-
-        LiveRedSirenVideoPlayer()
-    }
-}
-
-@Composable
-fun StartSiren() {
-    Column {
-        Text(text = "This is the 'Start Siren' Screen")
-
-        LiveRedSirenVideoPlayer()
-
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                particleInterface.turnOnRedSiren().execute()
-                delay(5000)
-                particleInterface.turnOffRedSiren().execute()
-            }
-        }
-    }
-}
 
 
 val particleInterface: ParticleRESTInterface by lazy {
