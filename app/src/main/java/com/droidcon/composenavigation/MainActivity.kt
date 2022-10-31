@@ -22,6 +22,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -37,11 +38,27 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
 /**
- *  Using basic Compose Navigation gives us back-stack functionality.
  *
- *  Allows for duplicate destinations at the end of the back-stack
- *  and does not remember state of each screen as we navigate away
- *  from them.
+ * We begin adding navigation option launchSingleTop as an explicit NavArgument.  This allows
+ * a single copy of a screen at the top of the stack.
+ *
+ * But that's just the beginning of nav arguments.. For a navigation bar such as this,
+ * each screen is really independent and hitting back from any of them should bring you
+ * to Greeting.  So the backstack should only be one deep.
+ *
+ * Adding more navigation arguments lends itself to creating an Extension function.
+ *
+ * We combine popUpTo and launchSingleTop in an extension function so our backstack is
+ * simplified.
+ *
+ * If we navigate from Greeting -> Configure -> Show Siren
+ * and then click back, we go back to Greeting (popUpTo)...
+ *
+ * However, if we click on 'Siren should be on' in Configure, then navigate away and back,
+ * that state is lost!
+ *
+ * This is because these screens are still being added and removed from Composition, so their
+ * memory is cleared..
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,13 +72,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Column {
                         Row(modifier = Modifier.fillMaxWidth()) {
-                            Button(onClick = { navController.navigate("greeting") }) {
+                            Button(onClick = { navController.navigateSingle("greeting") }) {
                                 Text("Greeting")
                             }
-                            Button(onClick = { navController.navigate("show_siren") }) {
+                            Button(onClick = { navController.navigateSingle("show_siren") }) {
                                 Text("Configure")
                             }
-                            Button(onClick = { navController.navigate("start_siren") }) {
+                            Button(onClick = { navController.navigateSingle("start_siren") }) {
                                 Text("Show Siren")
                             }
                         }
@@ -85,6 +102,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+fun NavHostController.navigateSingle(route: String) =
+    this.navigate(route) {
+        popUpTo("greeting")
+        launchSingleTop = true
+    }
 
 @Composable
 fun Greeting() {
