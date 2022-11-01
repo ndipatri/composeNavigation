@@ -67,10 +67,10 @@ class MainActivity : ComponentActivity() {
                             Button(onClick = { navController.navigateSingle("greeting") }) {
                                 Text("Greeting")
                             }
-                            Button(onClick = { navController.navigateSingle("show_siren") }) {
+                            Button(onClick = { navController.navigateSingle("configure_siren") }) {
                                 Text("Configure")
                             }
-                            Button(onClick = { navController.navigateSingle("start_siren") }) {
+                            Button(onClick = { navController.navigateSingle("show_siren") }) {
                                 Text("Show Siren")
                             }
                         }
@@ -81,10 +81,10 @@ class MainActivity : ComponentActivity() {
                             composable(route = "greeting") {
                                 Greeting()
                             }
-                            composable(route = "show_siren") {
+                            composable(route = "configure_siren") {
                                 Configure()
                             }
-                            composable(route = "start_siren") {
+                            composable(route = "show_siren") {
                                 ShowSiren()
                             }
                         }
@@ -138,7 +138,7 @@ fun ShowSiren() {
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
                 particleInterface.turnOnRedSiren().execute()
-                delay(5000)
+                delay(500)
                 particleInterface.turnOffRedSiren().execute()
             }
         }
