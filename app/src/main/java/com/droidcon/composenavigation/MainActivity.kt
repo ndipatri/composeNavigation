@@ -134,14 +134,6 @@ fun ShowSiren() {
         Text(text = "This is the 'Show Siren' Screen")
 
         LiveRedSirenVideoPlayer()
-
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                particleInterface.turnOnRedSiren().execute()
-                delay(500)
-                particleInterface.turnOffRedSiren().execute()
-            }
-        }
     }
 }
 
