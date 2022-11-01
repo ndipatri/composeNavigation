@@ -23,9 +23,11 @@ import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.droidcon.composenavigation.ui.theme.ComposeNavigationTheme
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Dispatchers
@@ -39,24 +41,29 @@ import retrofit2.http.*
 
 /**
  *
- * if we click on 'Siren should be on' in Configure, then navigate away and back,
- * that state is lost!
+ * Now we want to pass state information from the configure screen to the show_siren screen.
  *
- * This is because these screens are still being added and removed from Composition, so their
- * memory is cleared..
+ * To do this, we first need to hoist the configure screen data!
  *
- * The 'saveState' is a 'popUpTo' option.  It gives all screens that are being cleared off
- * the stack the opportunity to save their state.  These screens needs to use rememberSaveable
+ * Interestingly, because we've hoisted the configure screen state, we are no longer using
+ * the saveState/restoreState functionality of compose navigation in this example.
  *
- * When navigating to a screen, the 'restoreState' Navigation Option declares that this
- * destination should be restored
+ * We update our 'show_siren' navigation route to declare that it can take a 'shouldBeOn'
+ * boolean argument.  We don't care who will be sending us this argument.  Any navigation
+ * action can send this argument.  They are decoupled.
  *
+ * We update our 'Show Siren' button navigation call to pass this 'shouldBeOn' argument.
+ * It's value is defined by our hoisted state from the Configure screen!
+ *
+ * And finally we update our ShowSiren screen to accept this argument and only turn on the
+ * siren if its value is true.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
+            var sirenShouldBeOn by rememberSaveable { mutableStateOf(false) }
 
             ComposeNavigationTheme {
                 Surface(
@@ -70,7 +77,7 @@ class MainActivity : ComponentActivity() {
                             Button(onClick = { navController.navigateSingle("configure") }) {
                                 Text("Configure")
                             }
-                            Button(onClick = { navController.navigateSingle("show_siren") }) {
+                            Button(onClick = { navController.navigateSingle("show_siren/$sirenShouldBeOn") }) {
                                 Text("Show Siren")
                             }
                         }
@@ -82,10 +89,16 @@ class MainActivity : ComponentActivity() {
                                 Greeting()
                             }
                             composable(route = "configure") {
-                                Configure()
+                                Configure(sirenShouldBeOn = sirenShouldBeOn,
+                                          onSirenShouldBeOn = { _sirenShouldBeOn -> sirenShouldBeOn = _sirenShouldBeOn })
+
                             }
-                            composable(route = "show_siren") {
-                                ShowSiren()
+                            composable(route = "show_siren/{shouldBeOn}",
+                                arguments = listOf(navArgument("shouldBeOn") {
+                                    type = NavType.BoolType
+                                })
+                            ) {
+                                ShowSiren(it.arguments?.getBoolean("shouldBeOn") ?: false)
                             }
                         }
                     }
@@ -113,27 +126,36 @@ fun Greeting() {
 }
 
 @Composable
-fun Configure() {
+fun Configure(sirenShouldBeOn: Boolean, onSirenShouldBeOn: (Boolean) -> Unit) {
     Column {
         Text(text = "This is the 'Configure' Screen")
 
         Row {
             Text(text = "Siren should be on!")
-            var sirenShouldBeOn by rememberSaveable { mutableStateOf(false) }
             Checkbox(
                 checked = sirenShouldBeOn,
-                onCheckedChange = { checked -> sirenShouldBeOn = checked })
+                onCheckedChange = { checked -> onSirenShouldBeOn(checked) })
         }
     }
 }
 
 
 @Composable
-fun ShowSiren() {
+fun ShowSiren(shouldBeOn: Boolean) {
     Column {
         Text(text = "This is the 'Show Siren' Screen")
 
         LiveRedSirenVideoPlayer()
+
+        LaunchedEffect(Unit) {
+            if (shouldBeOn) {
+                withContext(Dispatchers.IO) {
+                    particleInterface.turnOnRedSiren().execute()
+                    delay(500)
+                    particleInterface.turnOffRedSiren().execute()
+                }
+            }
+        }
     }
 }
 
