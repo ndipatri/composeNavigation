@@ -39,26 +39,18 @@ import retrofit2.http.*
 
 /**
  *
- * We begin adding navigation option launchSingleTop as an explicit NavArgument.  This allows
- * a single copy of a screen at the top of the stack.
- *
- * But that's just the beginning of nav arguments.. For a navigation bar such as this,
- * each screen is really independent and hitting back from any of them should bring you
- * to Greeting.  So the backstack should only be one deep.
- *
- * Adding more navigation arguments lends itself to creating an Extension function.
- *
- * We combine popUpTo and launchSingleTop in an extension function so our backstack is
- * simplified.
- *
- * If we navigate from Greeting -> Configure -> Show Siren
- * and then click back, we go back to Greeting (popUpTo)...
- *
- * However, if we click on 'Siren should be on' in Configure, then navigate away and back,
+ * if we click on 'Siren should be on' in Configure, then navigate away and back,
  * that state is lost!
  *
  * This is because these screens are still being added and removed from Composition, so their
  * memory is cleared..
+ *
+ * The 'saveState' is a 'popUpTo' option.  It gives all screens that are being cleared off
+ * the stack the opportunity to save their state.  These screens needs to use rememberSaveable
+ *
+ * When navigating to a screen, the 'restoreState' Navigation Option declares that this
+ * destination should be restored
+ *
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,9 +97,13 @@ class MainActivity : ComponentActivity() {
 
 fun NavHostController.navigateSingle(route: String) =
     this.navigate(route) {
-        popUpTo("greeting")
+        popUpTo("greeting") {
+            saveState = true
+        }
         launchSingleTop = true
+        restoreState = true
     }
+
 
 @Composable
 fun Greeting() {
