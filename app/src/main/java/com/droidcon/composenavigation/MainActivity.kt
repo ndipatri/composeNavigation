@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                             Button(onClick = { navController.navigateSingle("greeting") }) {
                                 Text("Greeting")
                             }
-                            Button(onClick = { navController.navigateSingle("configure_siren") }) {
+                            Button(onClick = { navController.navigateSingle("configure") }) {
                                 Text("Configure")
                             }
                             Button(onClick = { navController.navigateSingle("show_siren") }) {
@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
                             composable(route = "greeting") {
                                 Greeting()
                             }
-                            composable(route = "configure_siren") {
+                            composable(route = "configure") {
                                 Configure()
                             }
                             composable(route = "show_siren") {
