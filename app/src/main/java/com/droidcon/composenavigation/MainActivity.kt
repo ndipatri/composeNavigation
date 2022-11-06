@@ -77,8 +77,8 @@ class MainActivity : ComponentActivity() {
                             Button(onClick = { navController.navigateSingle("configure") }) {
                                 Text("Configure")
                             }
-                            Button(onClick = { navController.navigateSingle("show_siren/$sirenShouldBeOn") }) {
-                                Text("Show Siren")
+                            Button(onClick = { navController.navigateSingle("show_siren/$sirenShouldBeOn", shouldRestore = false) }) {
+                                Text("Show Siren (${if (sirenShouldBeOn) "on" else "off"})")
                             }
                         }
                         NavHost(
@@ -108,13 +108,13 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun NavHostController.navigateSingle(route: String) =
+fun NavHostController.navigateSingle(route: String, shouldRestore: Boolean = true) =
     this.navigate(route) {
         popUpTo("greeting") {
             saveState = true
         }
         launchSingleTop = true
-        restoreState = true
+        restoreState = shouldRestore
     }
 
 
@@ -143,7 +143,7 @@ fun Configure(sirenShouldBeOn: Boolean, onSirenShouldBeOn: (Boolean) -> Unit) {
 @Composable
 fun ShowSiren(shouldBeOn: Boolean) {
     Column {
-        Text(text = "This is the 'Show Siren' Screen")
+        Text(text = "This is the 'Show Siren' Screen (${if (shouldBeOn) "on" else "off"})")
 
         LiveRedSirenVideoPlayer()
 
