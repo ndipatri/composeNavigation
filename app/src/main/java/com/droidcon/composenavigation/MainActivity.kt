@@ -8,11 +8,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -31,7 +32,6 @@ import androidx.navigation.navArgument
 import com.droidcon.composenavigation.ui.theme.ComposeNavigationTheme
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import retrofit2.Call
@@ -39,74 +39,103 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
+
 /**
  *
- * Now we want to pass state information from the configure screen to the show_siren screen.
+ * We start to make this look like a real application.
  *
- * To do this, we first need to hoist the configure screen data!
+ * We move the state of the siren up to a ViewModel which follows the lifecycle of the
+ * Activity, not the Composition.  viewModel() by default saves data through process
+ * recreation (e.g. Configuration changes by screen rotation) - similar to rememberSaveable.
  *
- * Interestingly, because we've hoisted the configure screen state, we are no longer using
- * the saveState/restoreState functionality of compose navigation in this example.
+ * We create a separate, easily testable 'MainScreen' composable that takes as an argument
+ * system resources such as NavController and our ViewModel.  This makes MainScreen
+ * easier to test.
  *
- * We update our 'show_siren' navigation route to declare that it can take a 'shouldBeOn'
- * boolean argument.  We don't care who will be sending us this argument.  Any navigation
- * action can send this argument.  They are decoupled.
+ * Notice the 'sirenShouldBeOn' is intrinsic to MainScreen as it's only capturing our
+ * desire to change the siren's state. So it's only used to render our navigation argument.
  *
- * We update our 'Show Siren' button navigation call to pass this 'shouldBeOn' argument.
- * It's value is defined by our hoisted state from the Configure screen!
+ * The ViewModel.isSirenOn, however, preserves the current state of the siren and can be
+ * used outside of MainScreen Composable.
  *
- * And finally we update our ShowSiren screen to accept this argument and only turn on the
- * siren if its value is true.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
-            var sirenShouldBeOn by rememberSaveable { mutableStateOf(false) }
+            val viewModel: SirenViewModel = viewModel()
 
             ComposeNavigationTheme {
                 Surface(
                     color = MaterialTheme.colors.background
                 ) {
-                    Column {
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            Button(onClick = { navController.navigateSingle("greeting") }) {
-                                Text("Greeting")
-                            }
-                            Button(onClick = { navController.navigateSingle("configure") }) {
-                                Text("Configure")
-                            }
-                            Button(onClick = { navController.navigateSingle("show_siren/$sirenShouldBeOn", shouldRestore = false) }) {
-                                Text("Show Siren (${if (sirenShouldBeOn) "on" else "off"})")
-                            }
-                        }
-                        NavHost(
-                            navController = navController,
-                            startDestination = "greeting"
-                        ) {
-                            composable(route = "greeting") {
-                                Greeting()
-                            }
-                            composable(route = "configure") {
-                                Configure(sirenShouldBeOn = sirenShouldBeOn,
-                                          onSirenShouldBeOn = { _sirenShouldBeOn -> sirenShouldBeOn = _sirenShouldBeOn })
+                    MainScreen(navController, viewModel)
+                }
+            }
+        }
+    }
 
-                            }
-                            composable(route = "show_siren/{shouldBeOn}",
-                                arguments = listOf(navArgument("shouldBeOn") {
-                                    type = NavType.BoolType
-                                })
-                            ) {
-                                ShowSiren(it.arguments?.getBoolean("shouldBeOn") ?: false)
-                            }
-                        }
-                    }
+    @Composable
+    private fun MainScreen(
+        navController: NavHostController,
+        viewModel: SirenViewModel
+    ) {
+        var sirenShouldBeOn by remember { mutableStateOf(false) }
+        Column {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = { navController.navigateSingle("greeting") }) {
+                    Text("Greeting")
+                }
+                Button(onClick = { navController.navigateSingle("configure") }) {
+                    Text("Configure")
+                }
+                Button(onClick = {
+                    navController.navigateSingle(
+                        "show_siren/$sirenShouldBeOn",
+                        shouldRestore = false
+                    )
+                }) {
+                    Text("Show Siren (${if (viewModel.isSirenOn) "on" else "off"})")
+                }
+            }
+            NavHost(
+                navController = navController,
+                startDestination = "greeting"
+            ) {
+                composable(route = "greeting") {
+                    Greeting(viewModel.isSirenOn)
+                }
+                composable(route = "configure") {
+                    Configure(sirenShouldBeOn = sirenShouldBeOn,
+                        onSirenShouldBeOn = { _sirenShouldBeOn ->
+                            sirenShouldBeOn = _sirenShouldBeOn
+                        })
+
+                }
+                composable(
+                    route = "show_siren/{shouldBeOn}",
+                    arguments = listOf(navArgument("shouldBeOn") {
+                        type = NavType.BoolType
+                    })
+                ) {
+                    ShowSiren(
+                        it.arguments?.getBoolean("shouldBeOn") ?: false,
+                        { isSirenOn -> viewModel.onSirenStateChange(isSirenOn) })
                 }
             }
         }
     }
 }
+
+class SirenViewModel : ViewModel() {
+    var isSirenOn by mutableStateOf(false)
+
+    fun onSirenStateChange(_isSirenOn: Boolean) {
+        isSirenOn = _isSirenOn
+    }
+}
+
 
 fun NavHostController.navigateSingle(route: String, shouldRestore: Boolean = true) =
     this.navigate(route) {
@@ -119,9 +148,9 @@ fun NavHostController.navigateSingle(route: String, shouldRestore: Boolean = tru
 
 
 @Composable
-fun Greeting() {
+fun Greeting(isSirenOn: Boolean) {
     Column {
-        Text(text = "Greetings! Check out my cool siren!")
+        Text(text = "Greetings! Check out my cool siren! It's ${if (isSirenOn) "on" else "off"}.")
     }
 }
 
@@ -141,23 +170,29 @@ fun Configure(sirenShouldBeOn: Boolean, onSirenShouldBeOn: (Boolean) -> Unit) {
 
 
 @Composable
-fun ShowSiren(shouldBeOn: Boolean) {
+fun ShowSiren(
+    shouldBeOn: Boolean,
+    onSirenStateChange: (Boolean) -> Unit
+) {
     Column {
         Text(text = "This is the 'Show Siren' Screen (${if (shouldBeOn) "on" else "off"})")
 
         LiveRedSirenVideoPlayer()
 
         LaunchedEffect(Unit) {
-            if (shouldBeOn) {
-                withContext(Dispatchers.IO) {
+            withContext(Dispatchers.IO) {
+                if (shouldBeOn) {
                     particleInterface.turnOnRedSiren().execute()
-                    delay(500)
+                    onSirenStateChange(true)
+                } else {
                     particleInterface.turnOffRedSiren().execute()
+                    onSirenStateChange(false)
                 }
             }
         }
     }
 }
+
 
 val particleInterface: ParticleRESTInterface by lazy {
 
