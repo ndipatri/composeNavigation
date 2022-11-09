@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
                         shouldRestore = false
                     )
                 }) {
-                    Text("Show Siren (${if (viewModel.isSirenOn) "on" else "off"})")
+                    Text("Show Siren (${if (sirenShouldBeOn) "on" else "off"})")
                 }
             }
             NavHost(
