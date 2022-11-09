@@ -16,6 +16,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.rtsp.RtspMediaSource
 import androidx.media3.exoplayer.source.MediaSource
@@ -29,6 +30,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.droidcon.composenavigation.ui.theme.ComposeNavigationTheme
+import com.google.gson.annotations.SerializedName
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -38,26 +40,8 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
+import java.util.*
 
-/**
- *
- * Now we want to pass state information from the configure screen to the show_siren screen.
- *
- * To do this, we first need to hoist the configure screen data!
- *
- * Interestingly, because we've hoisted the configure screen state, we are no longer using
- * the saveState/restoreState functionality of compose navigation in this example.
- *
- * We update our 'show_siren' navigation route to declare that it can take a 'shouldBeOn'
- * boolean argument.  We don't care who will be sending us this argument.  Any navigation
- * action can send this argument.  They are decoupled.
- *
- * We update our 'Show Siren' button navigation call to pass this 'shouldBeOn' argument.
- * It's value is defined by our hoisted state from the Configure screen!
- *
- * And finally we update our ShowSiren screen to accept this argument and only turn on the
- * siren if its value is true.
- */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -159,6 +143,7 @@ fun ShowSiren(shouldBeOn: Boolean) {
     }
 }
 
+
 val particleInterface: ParticleRESTInterface by lazy {
 
     val okHttpClient = OkHttpClient()
@@ -199,7 +184,7 @@ const val particleToken = "78116e05f59f44d8142c22a86216d8103aa7bdec"
 
 
 @Composable
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+@OptIn(UnstableApi::class)
 fun LiveRedSirenVideoPlayer(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
@@ -244,3 +229,19 @@ fun LiveRedSirenVideoPlayer(modifier: Modifier = Modifier) {
         }
     }
 }
+
+data class SimpleDevice(
+    val id: String,
+    val name: String,
+    val cellular: Boolean,
+    val imei: String,
+    @SerializedName("last_iccid") val lastIccid: String,
+    @SerializedName("current_build_target") val currentBuild: String,
+    @SerializedName("default_build_target") val defaultBuild: String,
+    @SerializedName("connected") val isConnected: Boolean,
+    @SerializedName("platform_id") val platformId: Int,
+    @SerializedName("product_id") val productId: Int,
+    @SerializedName("last_ip_address") val ipAddress: String,
+    @SerializedName("status") val status: String,
+    @SerializedName("last_heard") val lastHeard: Date
+)
