@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.media3.datasource.DataSource
+import androidx.media3.common.MediaItem
 
 
 class MainActivity : ComponentActivity() {
