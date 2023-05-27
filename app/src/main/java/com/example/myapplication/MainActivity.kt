@@ -46,6 +46,7 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import androidx.navigation.NavDeepLinkSaveStateControl
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -136,7 +137,7 @@ private fun MainScreen() {
                         })
                     ) {
                         val vm: ShowSirenViewModel = viewModel()
-                        ShowSiren(it.arguments?.getBoolean("shouldBeOn") ?: false)
+                        ShowSiren(vm.shouldBeOn.value)
                     }
                 }
             }
@@ -176,9 +177,9 @@ fun Configure(sirenShouldBeOn: Boolean, onSirenShouldBeOn: (Boolean) -> Unit) {
 }
 
 class ShowSirenViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+    val shouldBeOn = mutableStateOf(savedStateHandle.get<Boolean>("shouldBeOn") ?: false)
     init {
-        val shouldBeOn = savedStateHandle.get<Boolean>("shouldBeOn") ?: false
-        if (shouldBeOn) {
+        if (shouldBeOn.value) {
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
                     particleInterface.turnOnRedSiren().execute()
