@@ -84,7 +84,7 @@ import java.util.*
                                __/ |
                               |___/
 DroidCon San Francisco 2023
-Nick DiPatri
+Nick DiPatri, Comcast Corporation, Philadelphia
 https://www.linkedin.com/in/ndipatri/
 https://github.com/ndipatri/composeNavigation/tree/finish
 */
